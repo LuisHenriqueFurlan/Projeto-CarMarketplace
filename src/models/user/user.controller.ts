@@ -1,15 +1,10 @@
-import { success } from 'zod'
-import {
-  MissingFieldError,
-  NotFoundError,
-  ValidationError,
-} from '../../errors/errors'
+import type { FastifyRequest, FastifyReply } from 'fastify'
+import { MissingFieldError } from '../../errors/errors'
 import {
   userService,
   type CreateUserSchemaDTO,
   type UpdateUserSchemaDTO,
 } from './user.service'
-import type { FastifyRequest, FastifyReply } from 'fastify'
 
 export interface ParamsInterface {
   id: string
@@ -27,7 +22,7 @@ export class UserController {
 
     return reply.status(201).send({
       success: true,
-      message: 'Sucesso ao criar o usuário',
+      message: 'Usuário criado com sucesso',
       data: user,
     })
   }
@@ -37,12 +32,8 @@ export class UserController {
 
     const user = await userService.getUserByID(id)
 
-    if (!user) {
-      throw new NotFoundError('Erro ao encontrar o usuário')
-    }
-
     return reply.status(200).send({
-      status: success,
+      success: true,
       message: 'Usuário encontrado com sucesso',
       data: user,
     })
@@ -56,7 +47,7 @@ export class UserController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao atualizar o usuário',
+      message: 'Usuário atualizado com sucesso',
       data: user,
     })
   }
@@ -66,13 +57,7 @@ export class UserController {
 
     const result = await userService.deleteUser(id)
 
-    const test = await userService.getUserByID(id)
-
-    if (test) {
-      throw new ValidationError('Erro ao deletar o produto')
-    }
-
-    return reply.send({
+    return reply.status(200).send({
       success: true,
       message: result.message,
     })

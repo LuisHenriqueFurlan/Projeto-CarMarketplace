@@ -13,6 +13,12 @@ export interface UpdateListingImagesSchemaDTO
 
 export class ListingImagesService {
   async createListingImage(data: CreateListingImagesSchemaDTO) {
+    const lista = await prisma.listing.findUnique({
+      where: { id: data.listing_id },
+    })
+
+    if (!lista) throw new NotFoundError('Erro ao encontrar a listagem')
+
     if (!data.url || !data.position) {
       throw new ValidationError('Dados faltando')
     }
@@ -55,8 +61,8 @@ export class ListingImagesService {
       const listing = await prisma.listing_images.update({
         where: { id },
         data: {
-          url: data.url,
-          position: data.position,
+          ...(data.url !== undefined && { url: data.url }),
+          ...(data.position !== undefined && { position: data.position }),
         },
       })
 

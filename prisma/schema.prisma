@@ -12,9 +12,68 @@ datasource db {
   provider = "postgresql"
 }
 
-enum listingType {
-  venda
-  aluguel
+enum fuel_type {
+  flex
+  gasolina
+  etanol
+  diesel
+  eletrico
+  hibrido
+}
+
+enum transmission_type {
+  manual
+  automatico
+  cvt
+  automatizado
+}
+
+enum vehicle_condition {
+  novo
+  seminovo
+  usado
+}
+
+enum listing_status {
+  ativo
+  pausado
+  vendido
+  expirado
+  removido
+}
+
+enum listing_category {
+  carros
+  motos
+  caminhoes
+  vans
+  pickups
+  suvs
+  sedans
+  hatchs
+  coupes
+  outros  
+}
+
+enum message_status {
+  enviada
+  lida
+  arquivada
+}
+
+enum report_reason {
+  preco_suspeito
+  anuncio_duplicado
+  veiculo_roubado
+  informacoes_falsas
+  spam
+  outro
+}
+
+enum report_status {
+  pendente
+  resolvido
+  rejeitado
 }
 
 enum Condition {
@@ -24,7 +83,7 @@ enum Condition {
   pausado
 }
 
-model user { 
+model user {
   id            String   @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
   name          String   @db.VarChar(80)
   email         String   @db.VarChar(255) @unique
@@ -34,42 +93,69 @@ model user {
   phone         String   @db.VarChar(16)
   avatar_url    String?  @db.Text
   rating        Decimal? @db.Decimal(3, 2)
-  verified      Boolean  @db.Boolean 
+  verified      Boolean  @db.Boolean
   created_at    DateTime @db.Timestamptz() @default(now())
   listing       listing[]
   featured_plans featured_plans[]
+  favorites     favorites[]
+  conversationAsBuyer  conversation[] @relation("BuyerConversation")
+  conversationAsSeller conversation[] @relation("SellerConversation")
+  sentMessages         message[]      @relation("SentMessage")
+  seller_stats         seller_stats[]
+  reviewsAsSeller      review[]       @relation("SellerReview")
+  reviewsAsReviewer    review[]       @relation("ReviewerReview")
+  reports              report[]
 }
 
 model listing {
-  id              String        @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
-  user_id         String        @db.Uuid()
-  user            user          @relation(fields: [user_id], references: [id], onDelete: Cascade) 
-  title           String        @db.VarChar(100)
-  category        String        @db.VarChar(30)
-  type            listingType
-  price           Decimal       @db.Decimal(12, 2)
-  year            Int           @db.SmallInt
-  brand           String        @db.VarChar(50)
-  model           String        @db.VarChar(50)
-  hours           Int?          @db.Integer
-  condition       Condition
-  description     String?       @db.Text
-  location        String        @db.VarChar(60)
-  state           String        @db.VarChar(2)
-  featured        Boolean       @db.Boolean
-  views           Int           @db.Integer
-  created_at      DateTime      @db.Timestamptz() @default(now())
-  updated_at      DateTime      @db.Timestamptz() @default(now())
+  id              String              @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  user_id         String              @db.Uuid()
+  user            user                @relation(fields: [user_id], references: [id], onDelete: Cascade) 
+  title           String              @db.VarChar(100)
+  category        listing_category
+  price           Decimal             @db.Decimal(12, 2)
+  condition       vehicle_condition
+  year_model      Int                 @db.SmallInt
+  year_manuf      Int?                @db.SmallInt
+  brand           String              @db.VarChar(80)
+  model           String              @db.VarChar(120)
+  description     String?             @db.Text
+  status          listing_status      @default(ativo)
+  color           String?             @db.VarChar(50)
+  fuel            fuel_type
+  trasmission     transmission_type
+  km              Int?                 
+  doors           Int?                @db.SmallInt
+  engine_cc       Int?
+  license_plate   String?              @db.VarChar(10)
+  fipe_code       String?              @db.VarChar(20)
+  price_negotiable Boolean            @db.Boolean @default(false)
+  accepts_trade   Boolean             @db.Boolean @default(false)
+  city            String              @db.VarChar(100)
+  state           String              @db.VarChar(2)
+  cep             String?             @db.VarChar(2)
+  views_count     Int                 @db.Integer @default(0)          
+  featured        Boolean             @db.Boolean @default(false)
+  featured_until  DateTime?           @db.Timestamptz()
+  expires_at      DateTime            @db.Timestamptz() @default(now())
+  published_at    DateTime?           @db.Timestamptz()
+  created_at      DateTime            @db.Timestamptz() @default(now())
+  updated_at      DateTime            @db.Timestamptz() @default(now())
   listing_images  listing_image[]
   featured_plans  featured_plans[]
+  favorites       favorites[]
+  conversation    conversation[]
+  reviews         review[]
+  reports         report[]
 }
 
 model listing_image {
-  id              String  @db.Uuid() @default(dbgenerated("gen_random_uuid()")) @unique
-  listing_id      String  @db.Uuid()
-  listing         listing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
-  url             String  @db.Text
-  position        Int     @db.SmallInt
+  id              String   @db.Uuid() @default(dbgenerated("gen_random_uuid()")) @unique
+  listing_id      String   @db.Uuid()
+  listing         listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  url             String   @db.Text
+  position        Int      @db.SmallInt
+  created_at      DateTime @db.Timestamptz() @default(now())
 }
 
 model featured_plans {
@@ -82,3 +168,82 @@ model featured_plans {
   ends_at      DateTime @db.Timestamptz()
   paid_amount  Decimal  @db.Decimal(10, 2)
 }
+
+model favorites {
+  user_id      String   @db.Uuid
+  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  listing_id   String   @db.Uuid
+  listing      listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  created_at   DateTime @db.Timestamptz() @default(now())
+
+  @@id([user_id, listing_id])
+}
+
+model conversation {
+  id          String    @db.Uuid @id
+  listing_id  String    @db.Uuid
+  listing     listing   @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  buyer_id    String    @db.Uuid
+  buyer       user      @relation("BuyerConversation", fields: [buyer_id], references: [id], onDelete: Cascade)
+  seller_id   String    @db.Uuid
+  seller      user      @relation("SellerConversation", fields: [seller_id], references: [id], onDelete: Cascade)
+  is_archived Boolean   @db.Boolean @default(false)
+  created_at  DateTime  @db.Timestamptz() @default(now())
+  updated_at  DateTime  @db.Timestamptz() @default(now())
+  messages    message[]
+}
+
+model message {
+  id              String         @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  conversation_id String         @db.Uuid
+  conversation    conversation   @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender_id       String         @db.Uuid
+  sender          user           @relation("SentMessage", fields: [sender_id], references: [id], onDelete: Cascade)
+  body            String         @db.Text
+  status          message_status @default(enviada)
+  created_at      DateTime       @db.Timestamptz() @default(now())
+}
+
+model seller_stats {
+  user_id             String   @db.Uuid
+  user                user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  total_listing       Int      @db.Integer @default(0)
+  active_listing      Int      @db.Integer @default(0)
+  sold_count          Int      @db.Integer @default(0)
+  avg_rating          Decimal? @db.Decimal(3, 2)
+  review_count        Int      @db.Integer @default(0)
+  updated_at          DateTime @db.Timestamptz() @default(now())
+
+  @@id([user_id])
+}
+
+model review {
+  id          String   @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  seller_id   String   @db.Uuid
+  seller      user     @relation("SellerReview", fields: [seller_id], references: [id], onDelete: Cascade)
+  reviewer_id String   @db.Uuid
+  reviewer    user     @relation("ReviewerReview", fields: [reviewer_id], references: [id], onDelete: Cascade)
+  listing_id  String?  @db.Uuid
+  listing     listing? @relation(fields: [listing_id], references: [id], onDelete: SetNull)
+  rating      Int      @db.SmallInt
+  comment     String?  @db.Text
+  created_at  DateTime @db.Timestamptz() @default(now())
+
+  @@unique([listing_id, reviewer_id])
+}
+
+model report {
+  id          String        @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  listing_id  String        @db.Uuid
+  listing     listing       @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  reporter_id String        @db.Uuid
+  reporter    user          @relation(fields: [reporter_id], references: [id], onDelete: Cascade)
+  reason      report_reason
+  details     String?       @db.Text
+  status      report_status @default(pendente)
+  resolved_at DateTime?     @db.Timestamptz()
+  created_at  DateTime      @db.Timestamptz() @default(now())
+
+  @@unique([listing_id, reporter_id])
+}
+

@@ -28,8 +28,8 @@ export async function ListingRoutes(app: FastifyInstance) {
     listingController.getListingByCategory(request, reply)
   )
 
-  app.post('/listings/search/type', (request, reply) =>
-    listingController.getListingByType(request, reply)
+  app.post('/listings/search/year', (request, reply) =>
+    listingController.getListingByYear(request, reply)
   )
 
   app.post('/listings/search', (request, reply) =>

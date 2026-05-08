@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export const createListingImagesSchema = z.object({
+  listing_id: z.uuid('ID de lista inválido'),
   url: z.string('A url deve ser uma string válida').url(),
   position: z.number(),
 })

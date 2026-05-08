@@ -1,17 +1,16 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
+import { MissingFieldError } from '../../errors/errors'
 import {
   listingService,
   type CreateListingDTO,
   type UpdateListingDTO,
 } from './listing.service'
-import { MissingFieldError } from '../../errors/errors'
 
-interface filter {
+interface SearchFilters {
   title?: string
   brand?: string
   year?: number
   category?: string
-  type?: 'venda' | 'aluguel'
   condition?: string
 }
 
@@ -39,7 +38,7 @@ export class ListingController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao enconstrar a listagem',
+      message: 'Listagem encontrada com sucesso',
       data: list,
     })
   }
@@ -51,7 +50,7 @@ export class ListingController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao encontrar a listagem',
+      message: 'Listagens encontradas com sucesso',
       data: list,
     })
   }
@@ -63,7 +62,7 @@ export class ListingController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao encontrar a listagem',
+      message: 'Listagens encontradas com sucesso',
       data: list,
     })
   }
@@ -75,7 +74,7 @@ export class ListingController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao encontrar a listagem',
+      message: 'Listagens encontradas com sucesso',
       data: list,
     })
   }
@@ -83,35 +82,23 @@ export class ListingController {
   async getListingByCategory(request: FastifyRequest, reply: FastifyReply) {
     const { category } = request.body as { category: string }
 
-    const list = await listingService.getListingByID(category)
+    const list = await listingService.getListingByCategory(category)
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao encontrar a listagem',
-      data: list,
-    })
-  }
-
-  async getListingByType(request: FastifyRequest, reply: FastifyReply) {
-    const { type } = request.body as { type: 'venda' | 'aluguel' }
-
-    const list = await listingService.getListingByID(type)
-
-    return reply.status(200).send({
-      success: true,
-      message: 'Sucesso ao encontrar a listagem',
+      message: 'Listagens encontradas com sucesso',
       data: list,
     })
   }
 
   async searchListing(request: FastifyRequest, reply: FastifyReply) {
-    const filter = request.body as filter
+    const filters = request.body as SearchFilters
 
-    const list = await listingService.searchListings(filter)
+    const list = await listingService.searchListings(filters)
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao encontrar a listagem',
+      message: 'Listagens encontradas com sucesso',
       data: list,
     })
   }
@@ -124,7 +111,7 @@ export class ListingController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao atualizar a listagem',
+      message: 'Listagem atualizada com sucesso',
       data: list,
     })
   }
@@ -136,7 +123,7 @@ export class ListingController {
 
     return reply.status(200).send({
       success: true,
-      message: 'Sucesso ao deletar a listagem',
+      message: 'Listagem deletada com sucesso',
     })
   }
 }

@@ -29,7 +29,8 @@
         "noForEach": "warn"
       },
       "suspicious": {
-        "noArrayIndexKey": "info"
+        "noArrayIndexKey": "info",
+        "noExplicitAny": "off"
       }
     }
   },
@@ -37,9 +38,6 @@
     {
       "linter": {
         "rules": {
-          "suspicious": {
-            "noExplicitAny": "info"
-          },
           "complexity": {
             "useLiteralKeys": "info"
           }
