@@ -41,25 +41,25 @@ export class SellerStatsService {
 
   async updateSellerStats(data: UpdateSellerStatsInput, id: string) {
     const findSellerStats = await prisma.seller_stats.findUnique({
-      where: { id },
+      where: { user_id: id },
     })
 
     if (!findSellerStats) throw new NotFoundError('Erro ao encontrar os stats')
 
     try {
       const sellerStats = await prisma.seller_stats.update({
-        where: { id },
+        where: { user_id: id },
         data: {
-          ...(data.active_listing !== undefined && {
-            active_listing: data.active_listing,
+          ...(data.active_listings !== undefined && {
+            active_listings: data.active_listings,
           }),
           ...(data.avg_rating !== undefined && { avg_rating: data.avg_rating }),
           ...(data.review_count !== undefined && {
             review_count: data.review_count,
           }),
           ...(data.sold_count !== undefined && { sold_count: data.sold_count }),
-          ...(data.total_listing !== undefined && {
-            total_listing: data.total_listing,
+          ...(data.total_listings !== undefined && {
+            total_listings: data.total_listings,
           }),
         },
       })
@@ -72,14 +72,14 @@ export class SellerStatsService {
 
   async deleteSellerStats(id: string) {
     const findSellerStats = await prisma.seller_stats.findUnique({
-      where: { id },
+      where: { user_id: id },
     })
 
     if (!findSellerStats) throw new NotFoundError('Erro ao encontrar os stats')
 
     try {
       await prisma.seller_stats.delete({
-        where: { id },
+        where: { user_id: id },
       })
     } catch (err: any) {
       throw new ValidationError('Erro ao deletar os stats', err)

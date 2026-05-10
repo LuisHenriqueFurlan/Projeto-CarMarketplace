@@ -9,7 +9,7 @@ const reportReasonEnum = z.enum([
   'outro',
 ])
 
-const reportStatusEnum = z.enum(['pendente', 'resolvido', 'rejeitado'])
+const reportStatusEnum = z.enum(['pendente', 'em_analise', 'resolvido', 'descartado'])
 
 export const CreateReportSchema = z.object({
   listing_id: z.string().uuid('Deve ser uma UUID válida'),

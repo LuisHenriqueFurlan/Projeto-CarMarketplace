@@ -1,11 +1,10 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -43,16 +42,14 @@ enum listing_status {
 }
 
 enum listing_category {
-  carros
+  sedans
   motos
   caminhoes
   vans
   pickups
   suvs
-  sedans
-  hatchs
-  coupes
-  outros  
+  classicos
+  outros
 }
 
 enum message_status {
@@ -72,32 +69,32 @@ enum report_reason {
 
 enum report_status {
   pendente
+  em_analise
   resolvido
-  rejeitado
-}
-
-enum Condition {
-  ativo
-  vendido
-  alugado
-  pausado
+  descartado
 }
 
 model user {
-  id            String   @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
-  name          String   @db.VarChar(80)
-  email         String   @db.VarChar(255) @unique
-  password_hash String   @db.VarChar(255)
-  cpf           String   @db.VarChar(14) @unique
-  cep           String   @db.VarChar(9)
-  phone         String   @db.VarChar(16)
-  avatar_url    String?  @db.Text
-  rating        Decimal? @db.Decimal(3, 2)
-  verified      Boolean  @db.Boolean
-  created_at    DateTime @db.Timestamptz() @default(now())
-  listing       listing[]
-  featured_plans featured_plans[]
-  favorites     favorites[]
+  id            String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String    @db.VarChar(120)
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.VarChar(255)
+  cpf           String    @unique @db.Char(11)
+  phone         String?   @db.VarChar(20)
+  cep           String?   @db.Char(8)
+  city          String?   @db.VarChar(100)
+  state         String?   @db.Char(2)
+  avatar_url    String?   @db.Text
+  bio           String?   @db.Text
+  is_verified   Boolean   @default(false) @db.Boolean
+  is_active     Boolean   @default(true) @db.Boolean
+  refresh_token String?   @db.Text
+  last_login_at DateTime? @db.Timestamptz()
+  created_at    DateTime  @default(now()) @db.Timestamptz()
+  updated_at    DateTime  @default(now()) @db.Timestamptz()
+
+  listing              listing[]
+  favorites            favorites[]
   conversationAsBuyer  conversation[] @relation("BuyerConversation")
   conversationAsSeller conversation[] @relation("SellerConversation")
   sentMessages         message[]      @relation("SentMessage")
@@ -105,135 +102,176 @@ model user {
   reviewsAsSeller      review[]       @relation("SellerReview")
   reviewsAsReviewer    review[]       @relation("ReviewerReview")
   reports              report[]
+
+  // Exemplo 1 — índice simples: acelera filtro por estado
+  @@index([state], map: "idx_users_state")
+  @@index([email], map: "idx_users_email")
+  @@index([cpf], map: "idx_users_cpf")
+  // Exemplo 2 — índice parcial: só indexa usuários ativos (WHERE is_active = TRUE)
+  @@index([is_active], map: "idx_users_is_active", where: raw("is_active = TRUE"))
+  @@map("users")
 }
 
 model listing {
-  id              String              @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
-  user_id         String              @db.Uuid()
-  user            user                @relation(fields: [user_id], references: [id], onDelete: Cascade) 
-  title           String              @db.VarChar(100)
-  category        listing_category
-  price           Decimal             @db.Decimal(12, 2)
-  condition       vehicle_condition
-  year_model      Int                 @db.SmallInt
-  year_manuf      Int?                @db.SmallInt
-  brand           String              @db.VarChar(80)
-  model           String              @db.VarChar(120)
-  description     String?             @db.Text
-  status          listing_status      @default(ativo)
-  color           String?             @db.VarChar(50)
-  fuel            fuel_type
-  trasmission     transmission_type
-  km              Int?                 
-  doors           Int?                @db.SmallInt
-  engine_cc       Int?
-  license_plate   String?              @db.VarChar(10)
-  fipe_code       String?              @db.VarChar(20)
-  price_negotiable Boolean            @db.Boolean @default(false)
-  accepts_trade   Boolean             @db.Boolean @default(false)
-  city            String              @db.VarChar(100)
-  state           String              @db.VarChar(2)
-  cep             String?             @db.VarChar(2)
-  views_count     Int                 @db.Integer @default(0)          
-  featured        Boolean             @db.Boolean @default(false)
-  featured_until  DateTime?           @db.Timestamptz()
-  expires_at      DateTime            @db.Timestamptz() @default(now())
-  published_at    DateTime?           @db.Timestamptz()
-  created_at      DateTime            @db.Timestamptz() @default(now())
-  updated_at      DateTime            @db.Timestamptz() @default(now())
-  listing_images  listing_image[]
-  featured_plans  featured_plans[]
-  favorites       favorites[]
-  conversation    conversation[]
-  reviews         review[]
-  reports         report[]
+  id               String            @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seller_id        String            @db.Uuid
+  seller           user              @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+  title            String            @db.VarChar(200)
+  description      String?           @db.Text
+  category         listing_category
+  condition        vehicle_condition
+  status           listing_status    @default(ativo)
+  brand            String            @db.VarChar(80)
+  model            String            @db.VarChar(120)
+  year_model       Int               @db.SmallInt
+  year_manuf       Int?              @db.SmallInt
+  color            String?           @db.VarChar(50)
+  fuel             fuel_type
+  transmission     transmission_type
+  km               Int?
+  doors            Int?              @db.SmallInt
+  engine_cc        Int?
+  license_plate    String?           @db.VarChar(10)
+  fipe_code        String?           @db.VarChar(20)
+  price            Decimal           @db.Decimal(12, 2)
+  price_negotiable Boolean           @default(true) @db.Boolean
+  accepts_trade    Boolean           @default(false) @db.Boolean
+  city             String            @db.VarChar(100)
+  state            String            @db.Char(2)
+  cep              String?           @db.Char(8)
+  views_count      Int               @default(0) @db.Integer
+  featured         Boolean           @default(false) @db.Boolean
+  featured_until   DateTime?         @db.Timestamptz()
+  expires_at       DateTime          @default(dbgenerated("(NOW() + INTERVAL '90 days')")) @db.Timestamptz()
+  published_at     DateTime?         @db.Timestamptz()
+  created_at       DateTime          @default(now()) @db.Timestamptz()
+  updated_at       DateTime          @default(now()) @db.Timestamptz()
+  search_vector    Unsupported("tsvector")?
+
+  listing_images listing_image[]
+  favorites      favorites[]
+  conversation   conversation[]
+  reviews        review[]
+  reports        report[]
+
+  // Exemplo 3 — índice com ordenação: listagem por mais recentes
+  @@index([created_at(sort: Desc)], map: "idx_listings_created_at")
+  @@index([seller_id], map: "idx_listings_seller_id")
+  @@index([status], map: "idx_listings_status")
+  @@index([category], map: "idx_listings_category")
+  @@index([state], map: "idx_listings_state")
+  @@index([price], map: "idx_listings_price")
+  @@index([year_model], map: "idx_listings_year_model")
+  @@index([brand], map: "idx_listings_brand")
+  @@index([condition], map: "idx_listings_condition")
+  @@index([featured, featured_until], map: "idx_listings_featured", where: raw("featured = TRUE"))
+  @@index([expires_at], map: "idx_listings_expires_at", where: raw("status = 'ativo'"))
+  // Exemplo 4 — índice composto parcial: filtro principal de /anuncios
+  @@index([state, category, status, price], map: "idx_listings_browse", where: raw("status = 'ativo'"))
+  // search_vector (GIN) fica em prisma/migrations/gin_indexes.sql
+  @@map("listings")
 }
 
 model listing_image {
-  id              String   @db.Uuid() @default(dbgenerated("gen_random_uuid()")) @unique
-  listing_id      String   @db.Uuid()
-  listing         listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
-  url             String   @db.Text
-  position        Int      @db.SmallInt
-  created_at      DateTime @db.Timestamptz() @default(now())
-}
+  id         String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing_id String   @db.Uuid
+  listing    listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  url        String   @db.Text
+  position   Int      @db.SmallInt
+  created_at DateTime @default(now()) @db.Timestamptz()
 
-model featured_plans {
-  id           String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  listing_id   String   @db.Uuid
-  listing      listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
-  user_id      String   @db.Uuid
-  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  starts_at    DateTime @db.Timestamptz()
-  ends_at      DateTime @db.Timestamptz()
-  paid_amount  Decimal  @db.Decimal(10, 2)
+  @@index([listing_id, position], map: "idx_listing_images_listing_id")
+
+  @@map("listing_images")
 }
 
 model favorites {
-  user_id      String   @db.Uuid
-  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  listing_id   String   @db.Uuid
-  listing      listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
-  created_at   DateTime @db.Timestamptz() @default(now())
+  user_id    String   @db.Uuid
+  user       user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  listing_id String   @db.Uuid
+  listing    listing  @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now()) @db.Timestamptz()
+
+  @@index([user_id], map: "idx_favorites_user_id")
+  @@index([listing_id], map: "idx_favorites_listing_id")
 
   @@id([user_id, listing_id])
+  @@map("favorites")
 }
 
 model conversation {
-  id          String    @db.Uuid @id
+  id          String    @id @db.Uuid
   listing_id  String    @db.Uuid
   listing     listing   @relation(fields: [listing_id], references: [id], onDelete: Cascade)
   buyer_id    String    @db.Uuid
   buyer       user      @relation("BuyerConversation", fields: [buyer_id], references: [id], onDelete: Cascade)
   seller_id   String    @db.Uuid
   seller      user      @relation("SellerConversation", fields: [seller_id], references: [id], onDelete: Cascade)
-  is_archived Boolean   @db.Boolean @default(false)
-  created_at  DateTime  @db.Timestamptz() @default(now())
-  updated_at  DateTime  @db.Timestamptz() @default(now())
+  is_archived Boolean   @default(false) @db.Boolean
+  created_at  DateTime  @default(now()) @db.Timestamptz()
+  updated_at  DateTime  @default(now()) @db.Timestamptz()
   messages    message[]
+
+  @@index([buyer_id], map: "idx_conversations_buyer_id")
+  @@index([seller_id], map: "idx_conversations_seller_id")
+  @@index([listing_id], map: "idx_conversations_listing")
+
+  @@map("conversations")
 }
 
 model message {
-  id              String         @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  id              String         @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   conversation_id String         @db.Uuid
   conversation    conversation   @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   sender_id       String         @db.Uuid
   sender          user           @relation("SentMessage", fields: [sender_id], references: [id], onDelete: Cascade)
   body            String         @db.Text
   status          message_status @default(enviada)
-  created_at      DateTime       @db.Timestamptz() @default(now())
+  created_at      DateTime       @default(now()) @db.Timestamptz()
+
+  @@index([conversation_id, created_at(sort: Desc)], map: "idx_messages_conversation_id")
+  @@index([sender_id], map: "idx_messages_sender_id")
+  @@index([status], map: "idx_messages_status", where: raw("status = 'enviada'"))
+
+
+  @@map("messages")
 }
 
 model seller_stats {
-  user_id             String   @db.Uuid
-  user                user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  total_listing       Int      @db.Integer @default(0)
-  active_listing      Int      @db.Integer @default(0)
-  sold_count          Int      @db.Integer @default(0)
-  avg_rating          Decimal? @db.Decimal(3, 2)
-  review_count        Int      @db.Integer @default(0)
-  updated_at          DateTime @db.Timestamptz() @default(now())
+  user_id         String   @db.Uuid
+  user            user    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  total_listings  Int      @default(0) @db.Integer
+  active_listings Int      @default(0) @db.Integer
+  sold_count      Int      @default(0) @db.Integer
+  avg_rating      Decimal? @db.Decimal(3, 2)
+  review_count    Int      @default(0) @db.Integer
+  updated_at      DateTime @default(now()) @db.Timestamptz()
 
   @@id([user_id])
+  @@map("seller_stats")
 }
 
 model review {
-  id          String   @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  id          String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   seller_id   String   @db.Uuid
   seller      user     @relation("SellerReview", fields: [seller_id], references: [id], onDelete: Cascade)
   reviewer_id String   @db.Uuid
-  reviewer    user     @relation("ReviewerReview", fields: [reviewer_id], references: [id], onDelete: Cascade)
+  reviewer    user    @relation("ReviewerReview", fields: [reviewer_id], references: [id], onDelete: Cascade)
   listing_id  String?  @db.Uuid
   listing     listing? @relation(fields: [listing_id], references: [id], onDelete: SetNull)
   rating      Int      @db.SmallInt
   comment     String?  @db.Text
-  created_at  DateTime @db.Timestamptz() @default(now())
+  created_at  DateTime @default(now()) @db.Timestamptz()
+
+  @@index([seller_id], map: "idx_reviews_seller_id")
+  @@index([reviewer_id], map: "idx_reviews_reviewer_id")
 
   @@unique([listing_id, reviewer_id])
+  @@map("reviews")
 }
 
 model report {
-  id          String        @db.Uuid @default(dbgenerated("gen_random_uuid()")) @unique
+  id          String        @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   listing_id  String        @db.Uuid
   listing     listing       @relation(fields: [listing_id], references: [id], onDelete: Cascade)
   reporter_id String        @db.Uuid
@@ -242,8 +280,11 @@ model report {
   details     String?       @db.Text
   status      report_status @default(pendente)
   resolved_at DateTime?     @db.Timestamptz()
-  created_at  DateTime      @db.Timestamptz() @default(now())
+  created_at  DateTime      @default(now()) @db.Timestamptz()
+
+  @@index([listing_id], map: "idx_reports_listing_id")
+  @@index([status], map: "idx_reports_status", where: raw("status = 'pendente'"))
 
   @@unique([listing_id, reporter_id])
+  @@map("reports")
 }
-

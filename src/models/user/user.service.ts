@@ -24,10 +24,13 @@ export class UserService {
           email: data.email,
           password_hash,
           cpf: data.cpf,
-          cep: data.cep ?? '',
-          phone: data.phone ?? '',
+          phone: data.phone,
+          cep: data.cep,
+          city: data.city,
+          state: data.state,
           avatar_url: data.avatar_url,
-          verified: data.verified ?? false,
+          bio: data.bio,
+          is_verified: data.is_verified ?? false,
         },
       })
 
@@ -69,8 +72,11 @@ export class UserService {
       if (data.email) updateData.email = data.email
       if (data.cep) updateData.cep = data.cep
       if (data.phone) updateData.phone = data.phone
+      if (data.city) updateData.city = data.city
+      if (data.state) updateData.state = data.state
       if (data.avatar_url) updateData.avatar_url = data.avatar_url
-      if (data.verified !== undefined) updateData.verified = data.verified
+      if (data.bio) updateData.bio = data.bio
+      if (data.is_verified !== undefined) updateData.is_verified = data.is_verified
       if (data.password) {
         updateData.password_hash = await bcrypt.hash(data.password, BCRYPT_ROUNDS)
       }

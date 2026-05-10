@@ -24,7 +24,7 @@ export class ReportsService {
     })
     if (!reporter) throw new NotFoundError('Usuário', data.reporter_id)
 
-    if (listing.user_id === data.reporter_id) {
+    if (listing.seller_id === data.reporter_id) {
       throw new ValidationError(
         'Você não pode denunciar o próprio anúncio',
         null
