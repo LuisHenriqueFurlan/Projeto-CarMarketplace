@@ -11,8 +11,10 @@ import { messagesRoutes } from './src/models/messages/messages.routes'
 import { reviewsRoutes } from './src/models/reviews/reviews.routes'
 import { sellerStatsRoutes } from './src/models/seller_stats/seller.stats.routes'
 import { reportsRoutes } from './src/models/reports/reports.routes'
+import { authRoutes } from './src/auth/auth.routes'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
+import jwt from '@fastify/jwt'
 import { AppError } from './src/errors/appError'
 
 const fastify = Fastify({
@@ -40,6 +42,11 @@ fastify.register(messagesRoutes)
 fastify.register(reviewsRoutes)
 fastify.register(sellerStatsRoutes)
 fastify.register(reportsRoutes)
+fastify.register(authRoutes)
+
+fastify.register(jwt, {
+  secret: process.env.JWT_SECRET as string,
+})
 
 fastify.register(rateLimit, {
   global: true,
