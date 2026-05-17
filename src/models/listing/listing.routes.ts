@@ -4,6 +4,14 @@ import { ListingController } from './listing.controller'
 const listingController = new ListingController()
 
 export async function ListingRoutes(app: FastifyInstance) {
+  app.get('/listings', (request, reply) =>
+    listingController.getListing(request, reply)
+  )
+
+  app.get('/listings/user/:id', (request, reply) =>
+    listingController.getListingByUser(request, reply)
+  )
+
   app.post('/listings', (request, reply) =>
     listingController.createListing(request, reply)
   )
@@ -26,10 +34,6 @@ export async function ListingRoutes(app: FastifyInstance) {
 
   app.post('/listings/search/category', (request, reply) =>
     listingController.getListingByCategory(request, reply)
-  )
-
-  app.post('/listings/search/year', (request, reply) =>
-    listingController.getListingByYear(request, reply)
   )
 
   app.post('/listings/search', (request, reply) =>

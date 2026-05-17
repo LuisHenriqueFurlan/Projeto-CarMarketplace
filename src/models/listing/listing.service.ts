@@ -18,18 +18,18 @@ export class ListingService {
         data: {
           seller_id: data.seller_id,
           title: data.title,
-          category: data.category,
+          category: data.category as any,
           price: data.price,
-          condition: data.condition,
+          condition: data.condition as any,
           year_model: data.year_model,
           year_manuf: data.year_manuf,
           brand: data.brand,
           model: data.model,
           description: data.description,
-          status: data.status,
+          status: data.status as any,
           color: data.color,
-          fuel: data.fuel,
-          transmission: data.transmission,
+          fuel: data.fuel as any,
+          transmission: data.transmission as any,
           km: data.km,
           doors: data.doors,
           engine_cc: data.engine_cc,
@@ -44,6 +44,15 @@ export class ListingService {
           featured_until: data.featured_until,
           expires_at: data.expires_at,
           published_at: data.published_at,
+          featured_amount: data.featured_amount,
+          popular_name: data.popular_name,
+          plate: data.plate,
+          bullet_proof: data.bullet_proof,
+          auction: data.auction,
+          security_components: data.security_components as any,
+          comfort_components: data.comfort_components as any,
+          technology_components: data.technology_components as any,
+          mechanic_components: data.mechanic_components as any,
         },
       })
 
@@ -56,14 +65,23 @@ export class ListingService {
   async getListingByID(id: string) {
     const list = await prisma.listing.findUnique({
       where: { id },
-      include: { listing_images: { orderBy: { position: 'asc' } } },
+      include: {
+        listing_images: { orderBy: { position: 'asc' } },
+        seller: { select: { name: true, phone: true } },
+      },
     })
 
     if (!list) {
       throw new NotFoundError('Listagem', id)
     }
 
-    return list
+    const { seller, ...rest } = list
+
+    return {
+      ...rest,
+      seller_name: seller?.name,
+      seller_phone: seller?.phone ?? undefined,
+    }
   }
 
   async getListingByTitle(title: string) {
@@ -137,6 +155,95 @@ export class ListingService {
     })
   }
 
+  async getListingByUser(page: number = 1, limit: number = 1000, id: string) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    })
+
+    if (!user) throw new NotFoundError('Erro ao encontrar o usuário')
+
+    try {
+      const skip = (page - 1) * limit
+      const [listing, total] = await Promise.all([
+        prisma.listing.findMany({
+          where: { seller_id: user.id },
+          skip,
+          take: limit,
+          orderBy: { created_at: 'desc' },
+          include: {
+            listing_images: { take: 1, orderBy: { position: 'asc' } },
+          },
+        }),
+        prisma.listing.count({ where: { seller_id: user.id } }),
+      ])
+
+      return {
+        data: listing,
+        pagination: {
+          total,
+          page,
+          limit,
+          pages: Math.ceil(total / limit),
+        },
+      }
+    } catch (err: any) {
+      throw new ValidationError('Erro ao acessar as listagens', err)
+    }
+  }
+
+  async getListing(page: number = 1, limit: number = 10000) {
+    try {
+      const skip = (page - 1) * limit
+      const [listing, total] = await Promise.all([
+        prisma.listing.findMany({
+          skip,
+          take: limit,
+          orderBy: { created_at: 'desc' },
+          include: {
+            listing_images: { take: 1, orderBy: { position: 'asc' } },
+          },
+        }),
+        prisma.listing.count(),
+      ])
+
+      return {
+        data: listing,
+        pagination: {
+          total,
+          page,
+          limit,
+          pages: Math.ceil(total / limit),
+        },
+      }
+    } catch (err: any) {
+      throw new ValidationError('Erro ao buscar as listagens', err)
+    }
+  }
+
+  async listingBoost(id: string, amount: number) {
+    const getListing = await prisma.listing.findUnique({ where: { id } })
+
+    if (!getListing) throw new NotFoundError('Não foi possível encontrar a listagem')
+
+    const featuredUntil = new Date()
+    featuredUntil.setDate(featuredUntil.getDate() + 30)
+
+    try {
+      const boost = await prisma.listing.update({
+        where: { id },
+        data: {
+          featured: true,
+          featured_until: featuredUntil,
+          featured_amount: amount,
+        },
+      })
+
+      return boost
+    } catch (err: any) {
+      throw new ValidationError('Erro ao impulsionar a listagem', err)
+    }
+  }
+
   async updateListing(data: UpdateListingDTO, id: string) {
     const getList = await prisma.listing.findUnique({ where: { id } })
 
@@ -149,18 +256,18 @@ export class ListingService {
         where: { id },
         data: {
           ...(data.title !== undefined && { title: data.title }),
-          ...(data.category !== undefined && { category: data.category }),
+          ...(data.category !== undefined && { category: data.category as any }),
           ...(data.price !== undefined && { price: data.price }),
-          ...(data.condition !== undefined && { condition: data.condition }),
+          ...(data.condition !== undefined && { condition: data.condition as any }),
           ...(data.year_model !== undefined && { year_model: data.year_model }),
           ...(data.year_manuf !== undefined && { year_manuf: data.year_manuf }),
           ...(data.brand !== undefined && { brand: data.brand }),
           ...(data.model !== undefined && { model: data.model }),
           ...(data.description !== undefined && { description: data.description }),
-          ...(data.status !== undefined && { status: data.status }),
+          ...(data.status !== undefined && { status: data.status as any }),
           ...(data.color !== undefined && { color: data.color }),
-          ...(data.fuel !== undefined && { fuel: data.fuel }),
-          ...(data.transmission !== undefined && { transmission: data.transmission }),
+          ...(data.fuel !== undefined && { fuel: data.fuel as any }),
+          ...(data.transmission !== undefined && { transmission: data.transmission as any }),
           ...(data.km !== undefined && { km: data.km }),
           ...(data.doors !== undefined && { doors: data.doors }),
           ...(data.engine_cc !== undefined && { engine_cc: data.engine_cc }),
@@ -175,6 +282,15 @@ export class ListingService {
           ...(data.featured_until !== undefined && { featured_until: data.featured_until }),
           ...(data.expires_at !== undefined && { expires_at: data.expires_at }),
           ...(data.published_at !== undefined && { published_at: data.published_at }),
+          ...(data.featured_amount !== undefined && { featured_amount: data.featured_amount }),
+          ...(data.popular_name !== undefined && { popular_name: data.popular_name }),
+          ...(data.plate !== undefined && { plate: data.plate }),
+          ...(data.bullet_proof !== undefined && { bullet_proof: data.bullet_proof }),
+          ...(data.auction !== undefined && { auction: data.auction }),
+          ...(data.security_components !== undefined && { security_components: data.security_components as any }),
+          ...(data.comfort_components !== undefined && { comfort_components: data.comfort_components as any }),
+          ...(data.technology_components !== undefined && { technology_components: data.technology_components as any }),
+          ...(data.mechanic_components !== undefined && { mechanic_components: data.mechanic_components as any }),
           updated_at: new Date(),
         },
       })

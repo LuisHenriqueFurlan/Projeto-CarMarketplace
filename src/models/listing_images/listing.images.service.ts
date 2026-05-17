@@ -19,13 +19,14 @@ export class ListingImagesService {
 
     if (!lista) throw new NotFoundError('Erro ao encontrar a listagem')
 
-    if (!data.url || !data.position) {
+    if (!data.url || data.position == null) {
       throw new ValidationError('Dados faltando')
     }
 
     try {
       const listingImages = await prisma.listing_image.create({
         data: {
+          listing_id: data.listing_id,
           url: data.url,
           position: data.position,
         },
@@ -37,7 +38,7 @@ export class ListingImagesService {
     }
   }
   async getListingImages(id: string) {
-    const listing = await prisma.listing_images.findUnique({
+    const listing = await prisma.listing_image.findUnique({
       where: { id },
     })
 
@@ -49,7 +50,7 @@ export class ListingImagesService {
   }
 
   async updateListingImages(data: UpdateListingImagesInput, id: string) {
-    const listing = await prisma.listing_images.findUnique({
+    const listing = await prisma.listing_image.findUnique({
       where: { id },
     })
 
@@ -58,7 +59,7 @@ export class ListingImagesService {
     }
 
     try {
-      const listing = await prisma.listing_images.update({
+      const listing = await prisma.listing_image.update({
         where: { id },
         data: {
           ...(data.url !== undefined && { url: data.url }),

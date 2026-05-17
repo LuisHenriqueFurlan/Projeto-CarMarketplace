@@ -103,6 +103,38 @@ export class ListingController {
     })
   }
 
+  async getListingByUser(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.body as { id: string }
+    const { page, limit } = request.query as { page?: string; limit?: string }
+
+    const listing = await listingService.getListingByUser(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 1000,
+      id
+    )
+
+    return reply.status(200).send({
+      message: 'Sucesso ao buscar as listagens',
+      data: listing,
+      success: true,
+    })
+  }
+
+  async getListing(request: FastifyRequest, reply: FastifyReply) {
+    const { page, limit } = request.query as { page?: string; limit?: string }
+
+    const listing = await listingService.getListing(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 10000
+    )
+
+    return reply.status(200).send({
+      success: true,
+      data: listing,
+      message: 'Sucesso ao buscar as listagens',
+    })
+  }
+
   async updateListing(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string }
     const data = request.body as UpdateListingDTO

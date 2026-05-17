@@ -12,66 +12,224 @@ datasource db {
 }
 
 enum fuel_type {
-  flex
-  gasolina
-  etanol
-  diesel
-  eletrico
-  hibrido
+  FLEX
+  GASOLINA
+  ETANOL
+  DIESEL
+  ELETRICO
+  HIBRIDO
 }
 
 enum transmission_type {
-  manual
-  automatico
-  cvt
-  automatizado
+  MANUAL
+  AUTOMATICO
+  CVT
+  AUTOMATIZADO
 }
 
 enum vehicle_condition {
-  novo
-  seminovo
-  usado
+  NOVO
+  SEMINOVO
+  USADO
 }
 
 enum listing_status {
-  ativo
-  pausado
-  vendido
-  expirado
-  removido
+  ATIVO
+  PAUSADO
+  VENDIDO
+  EXPIRADO
+  REMOVIDO
 }
 
 enum listing_category {
-  sedans
-  motos
-  caminhoes
-  vans
-  pickups
-  suvs
-  classicos
-  outros
+  SEDANS
+  MOTOS
+  CAMINHOES
+  VANS
+  PICKUPS
+  SUVS
+  CLASSICOS
+  OUTROS
 }
 
 enum message_status {
-  enviada
-  lida
-  arquivada
+  ENVIADA
+  LIDA
+  ARQUIVADA
 }
 
 enum report_reason {
-  preco_suspeito
-  anuncio_duplicado
-  veiculo_roubado
-  informacoes_falsas
-  spam
-  outro
+  PRECO_SUSPEITO
+  ANUNCIO_DUPLICADO
+  VEICULO_ROUBADO
+  INFORMACOES_FALSAS
+  SPAM
+  OUTRO
 }
 
 enum report_status {
-  pendente
-  em_analise
-  resolvido
-  descartado
+  PENDENTE
+  EM_ANALISE
+  RESOLVIDO
+  DESCARTADO
+}
+
+enum shift_type {
+  MANUAL
+  AUTOMATICO
+}
+
+enum security_components {
+  ABS                        
+  DISTRIBUICAO_FRENAGEM      
+  ASSISTENTE_FRENAGEM        
+  CONTROLE_ESTABILIDADE      
+  CONTROLE_TRACAO            
+  ASSISTENTE_RAMPA           
+  CRUISE_ADAPTATIVO          
+  FRENAGEM_AUTONOMA          
+  MONITOR_PONTO_CEGO         
+  ASSISTENTE_FAIXA           
+  AVISO_COLISAO_FRONTAL      
+  AVISO_TRAFEGO_TRASEIRO     
+  AIRBAG_FRONTAL             
+  AIRBAG_LATERAL             
+  AIRBAG_CORTINA              
+  AIRBAG_JOELHO             
+  CAMERA_RE                  
+  CAMERA_360                
+  SENSOR_ESTACIONAMENTO      
+  ESTACIONAMENTO_AUTONOMO    
+  ISOFIX                     
+  CINTO_PRETENSIONADOR       
+  IMOBILIZADOR              
+  ALARME                     
+  ENTRADA_SEM_CHAVE          
+  RASTREADOR                 
+  MONITOR_PRESSAO_PNEUS
+  PNEU_RUN_FLAT
+}
+
+enum comfort_components {
+  AR_CONDICIONADO
+  AR_CONDICIONADO_DIGITAL
+  AR_CONDICIONADO_DUAL_ZONE
+  AR_CONDICIONADO_TRI_ZONE
+  BANCO_AQUECIDO
+  BANCO_VENTILADO
+  BANCO_MASSAGEADOR
+  BANCO_ELETRICO
+  BANCO_MEMORIA
+  BANCO_COURO
+  VOLANTE_AQUECIDO
+  VOLANTE_MULTIMIDIA
+  VOLANTE_REGULAGEM_ELETRICA
+  TETO_SOLAR
+  TETO_PANORAMICO
+  VIDRO_ELETRICO
+  VIDRO_ELETRICO_TRASEIRO
+  RETROVISOR_ELETRICO
+  RETROVISOR_FOTOCROMATICO
+  ESPELHO_INTERNO_FOTOCROMATICO
+  CHAVE_PRESENCIAL
+  PARTIDA_BOTAO
+  PORTA_MALAS_ELETRICO
+  PORTA_MALAS_HANDS_FREE
+  CARREGADOR_WIRELESS
+  TOMADA_USB
+  TOMADA_110V
+  SISTEMA_SOM_PREMIUM
+  PAINEL_DIGITAL
+  HEAD_UP_DISPLAY
+  NAVEGACAO_GPS
+  CONTROLE_CRUZEIRO
+  PEDAL_ASSISTIDO
+  SUSPENSAO_ADAPTATIVA
+  ILUMINACAO_AMBIENTE
+  CORTINA_ELETRICA_TRASEIRA
+}
+
+enum technology_components {
+  CENTRAL_MULTIMIDIA
+  TELA_TOUCHSCREEN
+  APPLE_CARPLAY
+  ANDROID_AUTO
+  BLUETOOTH
+  WIFI_BORDO
+  ENTRADA_USB
+  ENTRADA_HDMI
+  CARREGADOR_WIRELESS
+  PAINEL_DIGITAL
+  HEAD_UP_DISPLAY
+  NAVEGACAO_GPS
+  RECONHECIMENTO_VOZ
+  ASSISTENTE_VIRTUAL
+  CAMERA_RE
+  CAMERA_360
+  SENSOR_ESTACIONAMENTO
+  PILOTO_AUTOMATICO
+  ATUALIZACAO_OTA
+  TELEMETRIA
+  CONTROLE_REMOTO_APP
+  PARTIDA_REMOTA
+  MONITORAMENTO_MOTORISTA
+  RECONHECIMENTO_FACIAL
+  RECONHECIMENTO_PLACA
+  SUSPENSAO_ADAPTATIVA
+  FAROL_ADAPTATIVO
+  FAROL_LED
+  FAROL_LASER
+  CONEXAO_4G
+  CONEXAO_5G
+  PONTO_ACESSO_WIFI
+  SISTEMA_SOM_PREMIUM
+  SUBWOOFER
+  AMPLIFICADOR
+  TELA_TRASEIRA
+  ESPELHO_RETROVISOR_CAMERA
+}
+
+enum mechanic_components {
+  MOTOR_ASPIRADO
+  MOTOR_TURBO
+  MOTOR_BITURBO
+  MOTOR_HIBRIDO
+  MOTOR_HIBRIDO_PLUG_IN
+  MOTOR_ELETRICO
+  MOTOR_FLEX
+  MOTOR_DIESEL
+  MOTOR_GNV
+  CAMBIO_MANUAL
+  CAMBIO_AUTOMATICO
+  CAMBIO_CVT
+  CAMBIO_DUPLA_EMBREAGEM
+  CAMBIO_SEMI_AUTOMATICO
+  TRACAO_DIANTEIRA
+  TRACAO_TRASEIRA
+  TRACAO_INTEGRAL
+  TRACAO_4X4
+  TRACAO_4X4_REDUCAO
+  DIRECAO_HIDRAULICA
+  DIRECAO_ELETRICA
+  DIRECAO_ELETRO_HIDRAULICA
+  SUSPENSAO_INDEPENDENTE
+  SUSPENSAO_MULTILINK
+  SUSPENSAO_MOLA
+  SUSPENSAO_AR
+  FREIO_DISCO_DIANTEIRO
+  FREIO_DISCO_TRASEIRO
+  FREIO_TAMBOR_TRASEIRO
+  DIFERENCIAL_ELETRONICO
+  DIFERENCIAL_MECANICO
+  BLOQUEIO_DIFERENCIAL
+  ESCAPE_ESPORTIVO
+  FILTRO_PARTICULAS
+  START_STOP
+  RECUPERACAO_ENERGIA
+  BATERIA_LITIO
+  CARREGAMENTO_RAPIDO
+  CARREGAMENTO_WIRELESS
+  MODO_CONDUCAO
 }
 
 model user {
@@ -80,7 +238,7 @@ model user {
   email         String    @unique @db.VarChar(255)
   password_hash String    @db.VarChar(255)
   cpf           String    @unique @db.Char(11)
-  phone         String?   @db.VarChar(20)
+  phone         String   @db.VarChar(20)
   cep           String?   @db.Char(8)
   city          String?   @db.VarChar(100)
   state         String?   @db.Char(2)
@@ -102,6 +260,7 @@ model user {
   reviewsAsSeller      review[]       @relation("SellerReview")
   reviewsAsReviewer    review[]       @relation("ReviewerReview")
   reports              report[]
+  listing_comments     listing_comment[]
 
   // Exemplo 1 — índice simples: acelera filtro por estado
   @@index([state], map: "idx_users_state")
@@ -120,7 +279,7 @@ model listing {
   description      String?           @db.Text
   category         listing_category
   condition        vehicle_condition
-  status           listing_status    @default(ativo)
+  status           listing_status    @default(ATIVO)
   brand            String            @db.VarChar(80)
   model            String            @db.VarChar(120)
   year_model       Int               @db.SmallInt
@@ -146,13 +305,24 @@ model listing {
   published_at     DateTime?         @db.Timestamptz()
   created_at       DateTime          @default(now()) @db.Timestamptz()
   updated_at       DateTime          @default(now()) @db.Timestamptz()
+  featured_amount  Decimal           @default(0)
+  popular_name     String?           @db.VarChar(20)
+  plate            String            @db.VarChar(7)
+  bullet_proof     Boolean           @default(false)  
+  auction          Boolean           @default(false)
+  observation      String?           @db.VarChar() 
+  security_components   security_components[]
+  comfort_components    comfort_components[]
+  technology_components technology_components[]
+  mechanic_components   mechanic_components[]
   search_vector    Unsupported("tsvector")?
 
-  listing_images listing_image[]
-  favorites      favorites[]
-  conversation   conversation[]
-  reviews        review[]
-  reports        report[]
+  listing_images   listing_image[]
+  favorites        favorites[]
+  conversation     conversation[]
+  reviews          review[]
+  reports          report[]
+  listing_comments listing_comment[]
 
   // Exemplo 3 — índice com ordenação: listagem por mais recentes
   @@index([created_at(sort: Desc)], map: "idx_listings_created_at")
@@ -163,11 +333,12 @@ model listing {
   @@index([price], map: "idx_listings_price")
   @@index([year_model], map: "idx_listings_year_model")
   @@index([brand], map: "idx_listings_brand")
-  @@index([condition], map: "idx_listings_condition")
+  @@index([popular_name], map: "idx_listing_popular_name")
+  @@index([plate], map: "idx_listing_plate")
   @@index([featured, featured_until], map: "idx_listings_featured", where: raw("featured = TRUE"))
-  @@index([expires_at], map: "idx_listings_expires_at", where: raw("status = 'ativo'"))
+  @@index([expires_at], map: "idx_listings_expires_at", where: raw("status = 'ATIVO'"))
   // Exemplo 4 — índice composto parcial: filtro principal de /anuncios
-  @@index([state, category, status, price], map: "idx_listings_browse", where: raw("status = 'ativo'"))
+  @@index([state, category, status, price], map: "idx_listings_browse", where: raw("status = 'ATIVO'"))
   // search_vector (GIN) fica em prisma/migrations/gin_indexes.sql
   @@map("listings")
 }
@@ -200,7 +371,7 @@ model favorites {
 }
 
 model conversation {
-  id          String    @id @db.Uuid
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   listing_id  String    @db.Uuid
   listing     listing   @relation(fields: [listing_id], references: [id], onDelete: Cascade)
   buyer_id    String    @db.Uuid
@@ -226,12 +397,12 @@ model message {
   sender_id       String         @db.Uuid
   sender          user           @relation("SentMessage", fields: [sender_id], references: [id], onDelete: Cascade)
   body            String         @db.Text
-  status          message_status @default(enviada)
+  status          message_status @default(ENVIADA)
   created_at      DateTime       @default(now()) @db.Timestamptz()
 
   @@index([conversation_id, created_at(sort: Desc)], map: "idx_messages_conversation_id")
   @@index([sender_id], map: "idx_messages_sender_id")
-  @@index([status], map: "idx_messages_status", where: raw("status = 'enviada'"))
+  @@index([status], map: "idx_messages_status", where: raw("status = 'ENVIADA'"))
 
 
   @@map("messages")
@@ -278,13 +449,30 @@ model report {
   reporter    user          @relation(fields: [reporter_id], references: [id], onDelete: Cascade)
   reason      report_reason
   details     String?       @db.Text
-  status      report_status @default(pendente)
+  status      report_status @default(PENDENTE)
   resolved_at DateTime?     @db.Timestamptz()
   created_at  DateTime      @default(now()) @db.Timestamptz()
 
   @@index([listing_id], map: "idx_reports_listing_id")
-  @@index([status], map: "idx_reports_status", where: raw("status = 'pendente'"))
+  @@index([status], map: "idx_reports_status", where: raw("status = 'PENDENTE'"))
 
   @@unique([listing_id, reporter_id])
   @@map("reports")
+}
+
+model listing_comment {
+  id         String           @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing_id String           @db.Uuid
+  listing    listing          @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  author_id  String           @db.Uuid
+  author     user             @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  body       String           @db.Text
+  parent_id  String?          @db.Uuid
+  parent     listing_comment? @relation("CommentReplies", fields: [parent_id], references: [id])
+  replies    listing_comment[] @relation("CommentReplies")
+  is_read    Boolean          @default(false)
+  created_at DateTime         @default(now()) @db.Timestamptz()
+
+  @@index([listing_id], map: "idx_listing_comments_listing_id")
+  @@map("listing_comments")
 }

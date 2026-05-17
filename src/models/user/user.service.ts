@@ -67,7 +67,6 @@ export class UserService {
 
     try {
       const updateData: Record<string, unknown> = {}
-
       if (data.name) updateData.name = data.name
       if (data.email) updateData.email = data.email
       if (data.cep) updateData.cep = data.cep
@@ -76,9 +75,13 @@ export class UserService {
       if (data.state) updateData.state = data.state
       if (data.avatar_url) updateData.avatar_url = data.avatar_url
       if (data.bio) updateData.bio = data.bio
-      if (data.is_verified !== undefined) updateData.is_verified = data.is_verified
+      if (data.is_verified !== undefined)
+        updateData.is_verified = data.is_verified
       if (data.password) {
-        updateData.password_hash = await bcrypt.hash(data.password, BCRYPT_ROUNDS)
+        updateData.password_hash = await bcrypt.hash(
+          data.password,
+          BCRYPT_ROUNDS
+        )
       }
 
       const user = await prisma.user.update({

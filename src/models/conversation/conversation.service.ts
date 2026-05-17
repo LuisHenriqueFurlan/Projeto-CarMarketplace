@@ -73,7 +73,9 @@ export class ConversationService {
       const conversation = await prisma.conversation.update({
         where: { id },
         data: {
-          ...(data.is_archived !== undefined && { is_archived: data.is_archived }),
+          ...(data.is_archived !== undefined && {
+            is_archived: data.is_archived,
+          }),
           updated_at: new Date(),
         },
       })
