@@ -38,9 +38,14 @@ export class UserService {
     } catch (error) {
       const err = error as PrismaUniqueError
       if (err.code === 'P2002') {
-        const field = err.meta?.target?.[0]
+        const fields: string[] =
+          (err.meta as any)?.driverAdapterError?.cause?.constraint?.fields ??
+          err.meta?.target ??
+          []
+        const field = fields[0]
         if (field === 'email') throw new ValidationError('Email já registrado')
         if (field === 'cpf') throw new ValidationError('CPF já registrado')
+        throw new ValidationError('Dado já cadastrado')
       }
       throw error
     }
@@ -49,6 +54,18 @@ export class UserService {
   async getUserByID(id: string) {
     const user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar_url: true,
+        bio: true,
+        city: true,
+        state: true,
+        phone: true,
+        is_verified: true,
+        created_at: true,
+      },
     })
 
     if (!user) {

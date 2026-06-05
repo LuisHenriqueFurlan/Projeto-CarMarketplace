@@ -191,29 +191,98 @@ export class ListingService {
     }
   }
 
-  async getListing(page: number = 1, limit: number = 10000) {
+  async getListing(filters: {
+    page?: number
+    limit?: number
+    category?: string
+    condition?: string
+    query?: string
+    order_by?: string
+    featured?: boolean
+    state?: string
+    city?: string
+    fuel?: string
+    brand?: string
+    model?: string
+    year?: number
+    min_year?: number
+    max_year?: number
+    max_km?: number
+    min_price?: number
+    max_price?: number
+    transmission?: string
+    doors?: number
+    color?: string
+    min_engine_cc?: number
+    max_engine_cc?: number
+    bullet_proof?: boolean
+    auction?: boolean
+  } = {}) {
+    const {
+      page = 1, limit = 12, category, condition, query,
+      order_by, featured, state, city, fuel, brand, model, year,
+      min_year, max_year, max_km, min_price, max_price, transmission, doors, color,
+      min_engine_cc, max_engine_cc, bullet_proof, auction,
+    } = filters
+
     try {
       const skip = (page - 1) * limit
+
+      const where: any = {
+        ...(category && { category: category as any }),
+        ...(condition && { condition: condition as any }),
+        ...(query && { title: { contains: query, mode: 'insensitive' } }),
+        ...(brand && { brand: { contains: brand, mode: 'insensitive' } }),
+        ...(model && { model: { contains: model, mode: 'insensitive' } }),
+        ...(year !== undefined
+          ? { year_model: year }
+          : (min_year !== undefined || max_year !== undefined)
+            ? { year_model: { ...(min_year !== undefined && { gte: min_year }), ...(max_year !== undefined && { lte: max_year }) } }
+            : {}),
+        ...(max_km !== undefined && { km: { lte: max_km } }),
+        ...(featured !== undefined && { featured }),
+        ...(state && { state }),
+        ...(city && { city: { contains: city, mode: 'insensitive' } }),
+        ...(fuel && { fuel: fuel as any }),
+        ...(transmission && { transmission: transmission as any }),
+        ...(doors && { doors }),
+        ...(color && { color: { contains: color, mode: 'insensitive' } }),
+        ...(bullet_proof !== undefined && { bullet_proof }),
+        ...(auction !== undefined && { auction }),
+        ...(min_price !== undefined || max_price !== undefined ? {
+          price: {
+            ...(min_price !== undefined && { gte: min_price }),
+            ...(max_price !== undefined && { lte: max_price }),
+          }
+        } : {}),
+        ...(min_engine_cc !== undefined || max_engine_cc !== undefined ? {
+          engine_cc: {
+            ...(min_engine_cc !== undefined && { gte: min_engine_cc }),
+            ...(max_engine_cc !== undefined && { lte: max_engine_cc }),
+          }
+        } : {}),
+      }
+
+      const orderBy: any =
+        order_by === 'menor_preco' ? { price: 'asc' } :
+        order_by === 'maior_preco' ? { price: 'desc' } :
+        order_by === 'relevancia' ? { featured_amount: 'desc' } :
+        { created_at: 'desc' }
+
       const [listing, total] = await Promise.all([
         prisma.listing.findMany({
+          where,
           skip,
           take: limit,
-          orderBy: { created_at: 'desc' },
-          include: {
-            listing_images: { take: 1, orderBy: { position: 'asc' } },
-          },
+          orderBy,
+          include: { listing_images: { take: 1, orderBy: { position: 'asc' } } },
         }),
-        prisma.listing.count(),
+        prisma.listing.count({ where }),
       ])
 
       return {
         data: listing,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit),
-        },
+        pagination: { total, page, limit, pages: Math.ceil(total / limit) },
       }
     } catch (err: any) {
       throw new ValidationError('Erro ao buscar as listagens', err)
@@ -299,6 +368,13 @@ export class ListingService {
     } catch (err: any) {
       throw new ValidationError('Erro ao atualizar a listagem', err)
     }
+  }
+
+  async incrementView(id: string) {
+    await prisma.listing.update({
+      where: { id },
+      data: { views_count: { increment: 1 } },
+    })
   }
 
   async deleteListing(id: string) {

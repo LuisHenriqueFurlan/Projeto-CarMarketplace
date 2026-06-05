@@ -40,6 +40,10 @@ export async function ListingRoutes(app: FastifyInstance) {
     listingController.searchListing(request, reply)
   )
 
+  app.post('/listings/:id/view', (request, reply) =>
+    listingController.incrementView(request, reply)
+  )
+
   app.put('/listings/:id', (request, reply) =>
     listingController.updateListing(request, reply)
   )

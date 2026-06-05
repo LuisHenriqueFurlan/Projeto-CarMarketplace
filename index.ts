@@ -13,6 +13,7 @@ import { sellerStatsRoutes } from './src/models/seller_stats/seller.stats.routes
 import { reportsRoutes } from './src/models/reports/reports.routes'
 import { authRoutes } from './src/auth/auth.routes'
 import { CommentsRoutes } from './src/models/comments/comments.routes'
+import { fipeRoutes } from './src/models/fipe/fipe.routes'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import jwt from '@fastify/jwt'
@@ -46,6 +47,7 @@ fastify.register(sellerStatsRoutes)
 fastify.register(reportsRoutes)
 fastify.register(authRoutes)
 fastify.register(CommentsRoutes)
+fastify.register(fipeRoutes)
 
 fastify.register(jwt, {
   secret: process.env.JWT_SECRET as string,

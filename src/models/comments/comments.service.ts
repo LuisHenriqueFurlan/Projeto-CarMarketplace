@@ -61,30 +61,53 @@ export class CommentsService {
     })
   }
 
-  async getUnreadCount(sellerId: string) {
-    const count = await prisma.listing_comment.count({
-      where: {
-        listing: { seller_id: sellerId },
-        author_id: { not: sellerId },
-        is_read: false,
-      },
-    })
-    return count
+  async getUnreadCount(userId: string) {
+    const [sellerCount, buyerCount] = await Promise.all([
+      // comentários novos nos anúncios do vendedor
+      prisma.listing_comment.count({
+        where: {
+          listing: { seller_id: userId },
+          author_id: { not: userId },
+          is_read: false,
+        },
+      }),
+      // respostas aos comentários do comprador
+      prisma.listing_comment.count({
+        where: {
+          parent_id: { not: null },
+          author_id: { not: userId },
+          parent: { author_id: userId },
+          is_read: false,
+        },
+      }),
+    ])
+    return sellerCount + buyerCount
   }
 
-  async markAllRead(sellerId: string) {
-    await prisma.listing_comment.updateMany({
-      where: {
-        listing: { seller_id: sellerId },
-        author_id: { not: sellerId },
-        is_read: false,
-      },
-      data: { is_read: true },
-    })
+  async markAllRead(userId: string) {
+    await Promise.all([
+      prisma.listing_comment.updateMany({
+        where: {
+          listing: { seller_id: userId },
+          author_id: { not: userId },
+          is_read: false,
+        },
+        data: { is_read: true },
+      }),
+      prisma.listing_comment.updateMany({
+        where: {
+          parent_id: { not: null },
+          author_id: { not: userId },
+          parent: { author_id: userId },
+          is_read: false,
+        },
+        data: { is_read: true },
+      }),
+    ])
   }
 
   async getNotifications(
-    sellerId: string,
+    userId: string,
     options: {
       page: number
       per_page: number
@@ -93,37 +116,53 @@ export class CommentsService {
       unread_only?: boolean
     }
   ) {
-    const where = {
-      listing: { seller_id: sellerId },
-      author_id: { not: sellerId },
+    const dateFilter = options.from || options.to
+      ? {
+          created_at: {
+            ...(options.from ? { gte: options.from } : {}),
+            ...(options.to ? { lte: options.to } : {}),
+          },
+        }
+      : {}
+
+    const baseExtra = {
       ...(options.unread_only ? { is_read: false } : {}),
-      ...(options.from || options.to
-        ? {
-            created_at: {
-              ...(options.from ? { gte: options.from } : {}),
-              ...(options.to ? { lte: options.to } : {}),
-            },
-          }
-        : {}),
+      ...dateFilter,
     }
 
-    const skip = (options.page - 1) * options.per_page
-    const [comments, total] = await Promise.all([
+    const include = {
+      author: { select: { id: true, name: true, avatar_url: true } },
+      listing: { select: { id: true, title: true } },
+      parent: { select: { body: true } },
+    }
+
+    const [sellerComments, buyerReplies] = await Promise.all([
       prisma.listing_comment.findMany({
-        where,
-        skip,
-        take: options.per_page,
+        where: { listing: { seller_id: userId }, author_id: { not: userId }, ...baseExtra },
         orderBy: { created_at: 'desc' },
-        include: {
-          author: { select: { id: true, name: true, avatar_url: true } },
-          listing: { select: { id: true, title: true } },
-        },
+        include,
       }),
-      prisma.listing_comment.count({ where }),
+      prisma.listing_comment.findMany({
+        where: {
+          parent_id: { not: null },
+          author_id: { not: userId },
+          parent: { author_id: userId },
+          ...baseExtra,
+        },
+        orderBy: { created_at: 'desc' },
+        include,
+      }),
     ])
 
+    const all = [...sellerComments, ...buyerReplies]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+    const skip = (options.page - 1) * options.per_page
+    const paginated = all.slice(skip, skip + options.per_page)
+    const total = all.length
+
     return {
-      notifications: comments.map(c => ({
+      notifications: paginated.map(c => ({
         id: c.id,
         listing_id: c.listing_id,
         listing_title: (c as any).listing?.title ?? '',
@@ -131,6 +170,8 @@ export class CommentsService {
         author: (c as any).author,
         is_read: c.is_read,
         created_at: c.created_at,
+        notification_type: c.parent_id ? 'reply' : 'comment',
+        parent_body: c.parent_id ? (c as any).parent?.body : undefined,
       })),
       total,
       page: options.page,

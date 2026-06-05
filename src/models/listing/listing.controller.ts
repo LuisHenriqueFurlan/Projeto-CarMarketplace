@@ -104,7 +104,7 @@ export class ListingController {
   }
 
   async getListingByUser(request: FastifyRequest, reply: FastifyReply) {
-    const { id } = request.body as { id: string }
+    const { id } = request.params as { id: string }
     const { page, limit } = request.query as { page?: string; limit?: string }
 
     const listing = await listingService.getListingByUser(
@@ -121,12 +121,35 @@ export class ListingController {
   }
 
   async getListing(request: FastifyRequest, reply: FastifyReply) {
-    const { page, limit } = request.query as { page?: string; limit?: string }
+    const q = request.query as any
 
-    const listing = await listingService.getListing(
-      page ? Number(page) : 1,
-      limit ? Number(limit) : 10000
-    )
+    const listing = await listingService.getListing({
+      page: q.page ? Number(q.page) : 1,
+      limit: q.per_page ? Number(q.per_page) : 12,
+      category: q.category,
+      condition: q.condition,
+      query: q.query,
+      order_by: q.order_by,
+      featured: q.featured === 'true' ? true : undefined,
+      state: q.state,
+      city: q.city,
+      fuel: q.fuel,
+      brand: q.brand,
+      model: q.model,
+      year: q.year ? Number(q.year) : undefined,
+      min_year: q.min_year ? Number(q.min_year) : undefined,
+      max_year: q.max_year ? Number(q.max_year) : undefined,
+      max_km: q.max_km ? Number(q.max_km) : undefined,
+      min_price: q.min_price ? Number(q.min_price) : undefined,
+      max_price: q.max_price ? Number(q.max_price) : undefined,
+      transmission: q.transmission,
+      doors: q.doors ? Number(q.doors) : undefined,
+      color: q.color,
+      min_engine_cc: q.min_engine_cc ? Number(q.min_engine_cc) : undefined,
+      max_engine_cc: q.max_engine_cc ? Number(q.max_engine_cc) : undefined,
+      bullet_proof: q.bullet_proof === 'true' ? true : q.bullet_proof === 'false' ? false : undefined,
+      auction: q.auction === 'true' ? true : q.auction === 'false' ? false : undefined,
+    })
 
     return reply.status(200).send({
       success: true,
@@ -146,6 +169,12 @@ export class ListingController {
       message: 'Listagem atualizada com sucesso',
       data: list,
     })
+  }
+
+  async incrementView(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string }
+    await listingService.incrementView(id)
+    return reply.status(200).send({ success: true })
   }
 
   async deleteListing(request: FastifyRequest, reply: FastifyReply) {
